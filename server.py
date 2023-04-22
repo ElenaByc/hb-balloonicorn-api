@@ -15,7 +15,6 @@ app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = True
 
 API_KEY = os.environ['TICKETMASTER_KEY']
 
-
 @app.route('/')
 def homepage():
     """Show homepage."""
@@ -53,10 +52,28 @@ def find_afterparties():
     #
     # - Replace the empty list in `events` with the list of events from your
     #   search results
+    payload['keyword'] = keyword
+    payload['postalCode'] = postalcode
+    payload['radius'] = radius
+    payload['unit'] = unit
+    payload['sort'] = sort
 
-    data = {'Test': ['This is just some test data'],
-            'page': {'totalElements': 1}}
-    events = []
+    print("Printing payload...")
+    print(payload)
+    
+    res = requests.get(url, params=payload)
+    data = res.json()
+    print("Printing data...")
+    print(data)
+
+    if '_embedded' in data:
+        events = data['_embedded']['events']
+    else:
+        events = []
+
+
+    # data = {'Test': ['This is just some test data'],
+    #         'page': {'totalElements': 1}}
 
     return render_template('search-results.html',
                            pformat=pformat,
@@ -74,8 +91,15 @@ def get_event_details(id):
     """View the details of an event."""
 
     # TODO: Finish implementing this view function
+    url = f"https://app.ticketmaster.com/discovery/v2/events/{id}"
+    payload = {'apikey': API_KEY}
 
-    return render_template('event-details.html')
+    # res = requests.get(f"https://app.ticketmaster.com/discovery/v2/events/{id}")
+    res = requests.get(url, params=payload)
+    data = res.json()
+    print(data) 
+
+    return render_template('event-details.html',data=data)
 
 
 if __name__ == '__main__':
